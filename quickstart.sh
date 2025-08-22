@@ -23,6 +23,11 @@ installPackages(){
     sudo apt purge --auto-remove unattended-upgrades snapd plasma-discover-backend-snap
 }
 
+setupLive() {
+    #Live image-specific packages
+    sudo apt install testdisk extundelete gparted btrfs-progs exfatprogs f2fs-tools dosfstools jfsutils mdadm ntfs-3g lvm2 nilfs-tools -y
+}
+
 setupFlatpak(){
     echo "[$(timestamp)] Setting up Flatpak..." | tee -a "$log_file"
     flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
@@ -31,8 +36,8 @@ setupFlatpak(){
 
 setupMisc(){
     echo "[$(timestamp)] Setting up miscellaneous configurations..." | tee -a "$log_file"
-    mkdir -p ~/.config
-    cp -r config/* ~/.config
+    mkdir -p /etc/skel/.config
+    cp -r config/* /etc/skel/.config
     #Shared folder includes a script that should be executable to all users, it allows to update both DPKG and Flatpak packages in one go due to a silly limitation on package-update-indicator that only allows it to run one command at once to "apply updates".
     sudo cp -r shared /home/
     sudo chmod a+rx -R /home/shared
@@ -41,7 +46,7 @@ setupMisc(){
 
 # Starting the script sequence
 {
-    updateSystem && installPackages && setupFlatpak && setupMisc
+    updateSystem && installPackages && setupLive && setupFlatpak && setupMisc
     echo "[$(timestamp)] Process has completed." | tee -a "$log_file"
 } || {
     echo "[$(timestamp)] An error occurred. Please check the log at $log_file for details." >&2
